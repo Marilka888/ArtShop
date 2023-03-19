@@ -5,15 +5,17 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.marilka888.jeweller.model.Role;
 import ru.marilka888.jeweller.model.User;
-import ru.marilka888.jeweller.model.auth.AuthenticationRequest;
-import ru.marilka888.jeweller.model.auth.AuthenticationResponse;
-import ru.marilka888.jeweller.model.auth.RegisterRequest;
+import ru.marilka888.jeweller.model.request.AuthenticationRequest;
+import ru.marilka888.jeweller.model.response.AuthenticationResponse;
+import ru.marilka888.jeweller.model.request.RegisterRequest;
 import ru.marilka888.jeweller.model.token.Token;
-import ru.marilka888.jeweller.model.token.TokenType;
 import ru.marilka888.jeweller.repository.TokenRepository;
 import ru.marilka888.jeweller.repository.UserRepository;
+
+import static java.lang.Math.*;
+import static ru.marilka888.jeweller.model.Role.*;
+import static ru.marilka888.jeweller.model.token.TokenType.*;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +32,7 @@ public class AuthenticationService {
                 .lastname(request.getLastname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER)
+                .role(USER)
                 .build();
         var savedUser = repository.save(user);
         var jwtToken = jwtService.generateToken(user);
@@ -61,7 +63,7 @@ public class AuthenticationService {
         var token = Token.builder()
                 .user(user)
                 .token(jwtToken)
-                .tokenType(TokenType.BEARER)
+                .tokenType(BEARER)
                 .expired(false)
                 .revoked(false)
                 .build();
@@ -69,7 +71,7 @@ public class AuthenticationService {
     }
 
     private void revokeAllUserTokens(User user) {
-        var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+        var validUserTokens = tokenRepository.findAllValidTokenByUser(toIntExact(user.getId()));
         if (validUserTokens.isEmpty())
             return;
         validUserTokens.forEach(token -> {

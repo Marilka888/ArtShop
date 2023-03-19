@@ -2,10 +2,15 @@ package ru.marilka888.jeweller.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import ru.marilka888.jeweller.common.exception.UserNotFoundException;
 import ru.marilka888.jeweller.model.User;
+import ru.marilka888.jeweller.model.request.UserRequest;
+import ru.marilka888.jeweller.model.response.UserResponse;
 import ru.marilka888.jeweller.repository.UserRepository;
 
 import java.security.Principal;
@@ -16,31 +21,60 @@ import java.security.Principal;
 public class UserService {
     private final UserRepository userRepository;
 
+    @Cacheable(value = "userProfile")
+    public UserResponse findProfile(Principal principal) {
+        try {
+            User user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
+            UserResponse response = UserResponse.builder()
+                    .role(user.getRole())
+                    .firstname(user.getFirstname())
+                    .lastname(user.getLastname())
+                    .phone(user.getPhone())
+                    .email(user.getEmail())
+                    .age(user.getAge())
+                    .dateOfCreated(user.getDateOfCreated())
+                    .orders(user.getOrders())
+                    .build();
+            return response;
+
+        } catch (UserNotFoundException e) {
+            throw new RuntimeException(); //todo exception
+        }
+    }
+
+    @CacheEvict(value = {"userProfile", "allUsers", "userById"})
+    public void updateUser(UserRequest request) {
+        try {
+            User user = userRepository.findByEmail(request.getEmail()).orElseThrow(UserNotFoundException::new);
+
+            User updatedUser = User.builder()
+                    .role(request.getRole())
+                    .firstname(request.getFirstname())
+                    .lastname(request.getLastname())
+                    .phone(request.getPhone())
+                    .email(request.getEmail())
+                    .age(request.getAge())
+                    .dateOfCreated(request.getDateOfCreated())
+                    .build();
+
+            userRepository.save(updatedUser);
+        } catch (UserNotFoundException e) {
+            throw new RuntimeException(); //todo exception
+        } catch (NullPointerException e) {
+            throw new RuntimeException(); //todo НЕ ЗАПОЛНЕНЫ ПОЛЯ
+        }
+    }
+
+    @Cacheable(value = "allUsers")
     public Page<User> findAll(Pageable pageable) {
         return userRepository.findAll(pageable);
     }
 
-    public User findUser(Long id) {
+    @Cacheable(value = "userById")
+    public User findUser(Integer id) {
         try {
-            return new User();
-            //return userRepository.findById(id).get();
-        } catch (NullPointerException e) {
-            throw new RuntimeException(); //todo exception
-        }
-    }
-
-    public User findProfile(Principal principal) {
-        try {
-            return userRepository.findByEmail(principal.getName()).get();
-        } catch (NullPointerException e) {
-            throw new RuntimeException(); //todo exception
-        }
-    }
-
-    public void updateUser(User user) {
-        try {
-            userRepository.save(user);
-        } catch (Exception e) {
+            return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        } catch (UserNotFoundException e) {
             throw new RuntimeException(); //todo exception
         }
     }

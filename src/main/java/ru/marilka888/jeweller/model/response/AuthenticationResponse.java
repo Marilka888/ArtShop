@@ -1,4 +1,4 @@
-package ru.marilka888.jeweller.model.auth;
+package ru.marilka888.jeweller.model.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

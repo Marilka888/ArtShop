@@ -1,11 +1,7 @@
 package ru.marilka888.jeweller.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,37 +12,35 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
-import static jakarta.persistence.GenerationType.AUTO;
-
-@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Setter
+@Getter
 @Entity
+@EqualsAndHashCode
 @Table(name = "_user")
 public class User implements UserDetails {
-
     @Id
-    @Column(name = "id")
-    @GeneratedValue(strategy = AUTO)
-    @JsonIgnore
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(unique = true)
     private String phone;
     private String firstname;
     private String lastname;
-    @Column(unique = true)
+    @EqualsAndHashCode.Exclude
     private String email;
-    @JsonIgnore
     private String password;
-
     private Integer age;
 
     @CreationTimestamp
     private LocalDateTime dateOfCreated;
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @OneToMany(mappedBy = "user")
+    private List<Order> orders;
 
     @OneToMany(mappedBy = "user")
     private List<Token> tokens;
@@ -86,3 +80,4 @@ public class User implements UserDetails {
         return true;
     }
 }
+
