@@ -1,7 +1,14 @@
 package ru.marilka888.jeweller.model;
 
-public enum Role {
+import org.springframework.security.core.GrantedAuthority;
+
+public enum Role implements GrantedAuthority {
 
     USER,
-    ADMIN
+    ADMIN;
+
+    @Override
+    public String getAuthority() {//возвращает роли в строковом виде
+        return name();
+    }
 }

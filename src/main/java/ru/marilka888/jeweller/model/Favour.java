@@ -3,6 +3,7 @@ package ru.marilka888.jeweller.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,11 +14,12 @@ import static jakarta.persistence.GenerationType.AUTO;
 @AllArgsConstructor
 @Data
 @Table(name = "_favours")
+@Builder
 public class Favour {
 
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonIgnore
     private Integer id;
 
@@ -27,8 +29,6 @@ public class Favour {
     private String description;
 
     private String price;
-
-    private Long userId;
 }
 
 

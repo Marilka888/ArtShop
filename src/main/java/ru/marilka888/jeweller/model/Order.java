@@ -3,6 +3,7 @@ package ru.marilka888.jeweller.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -14,11 +15,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Data
+@Builder
 @Table(name = "_orders")
-public class Order implements Serializable {
+public class Order {
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonIgnore
     private Long id;
 
@@ -34,9 +36,9 @@ public class Order implements Serializable {
     @Column(name = "status")
     private boolean status;
 
-    @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
-    @JoinColumn
-    private User user;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    public User user;
 
     @Column(name = "date_of_created")
     @CreationTimestamp
