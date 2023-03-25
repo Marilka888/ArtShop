@@ -1,21 +1,17 @@
 package ru.marilka888.jeweller.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import ru.marilka888.jeweller.model.Order;
+import ru.marilka888.jeweller.common.exception.*;
 import ru.marilka888.jeweller.model.request.OrderRequest;
-import ru.marilka888.jeweller.model.response.OrderResponse;
 import ru.marilka888.jeweller.service.OrderService;
 
 import java.security.Principal;
-import java.util.List;
 
 
 @Controller
@@ -26,34 +22,74 @@ public class OrderController {
 
     @PostMapping(value = "/create")
     @Transactional
-    public void createOrder(Principal principal, @RequestBody OrderRequest order) {
-        //todo valid
-        orderService.saveOrder(order, principal);
+    public Object createOrder(Principal principal, @RequestBody OrderRequest order) {
+        try {
+            orderService.saveOrder(order, principal);
+            return ResponseEntity.ok();
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound();
+        } catch (InnerException e) {
+            return ResponseEntity.internalServerError();
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest();
+        }
     }
 
     @GetMapping(value = "/all")
     @Transactional
-    public ResponseEntity<List<OrderResponse>> getUserOrders(Principal principal, Pageable pageable) {
-        return ResponseEntity.ok(orderService.getUserOrders(principal, pageable));
+    public Object getUserOrders(Principal principal, Pageable pageable) {
+        try {
+            return ResponseEntity.ok(orderService.getUserOrders(principal, pageable));
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound();
+        } catch (InnerException e) {
+            return ResponseEntity.internalServerError();
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest();
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.noContent();
+        }
     }
 
     @GetMapping(value = "/{id}")
     @Transactional
-    public ResponseEntity<OrderResponse> getUserOrder(Principal principal, @PathVariable Long id) {
-        //todo valid
-        return ResponseEntity.ok(orderService.getUserOrder(principal, Long.valueOf(id)));
+    public Object getUserOrder(Principal principal, @PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(orderService.getUserOrder(principal, Long.valueOf(id)));
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound();
+        } catch (InnerException e) {
+            return ResponseEntity.internalServerError();
+        } catch (BadRequestException | UserHaveNotOrder e) {
+            return ResponseEntity.badRequest();
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.noContent();
+        }
     }
 
     @GetMapping("/admin/all")
     @Transactional
-    public ResponseEntity<Page<Order>> getAllOrders(@PageableDefault Pageable pageable) {
-        return ResponseEntity.ok(orderService.findAllOrders(pageable));
+    public Object getAllOrders(@PageableDefault Pageable pageable) {
+        try {
+            return ResponseEntity.ok(orderService.findAllOrders(pageable));
+        } catch (InnerException e) {
+            return ResponseEntity.internalServerError();
+        }
     }
 
     @PostMapping(value = "/{id}")
     @Transactional
-    public void updateUserOrder(@RequestBody OrderRequest order, @PathVariable String id) {
-        orderService.updateOrder(order, id);
+    public Object updateUserOrder(@RequestBody OrderRequest order, @PathVariable String id) {
+        try {
+            orderService.updateOrder(order, id);
+            return ResponseEntity.ok();
+        } catch (UserNotFoundException | InnerException e) {
+            return ResponseEntity.internalServerError();
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest();
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.noContent();
+        }
     }
 
 }

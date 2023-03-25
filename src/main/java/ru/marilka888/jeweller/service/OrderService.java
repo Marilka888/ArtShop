@@ -9,8 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import ru.marilka888.jeweller.common.exception.OrderNotFoundException;
-import ru.marilka888.jeweller.common.exception.UserNotFoundException;
+import ru.marilka888.jeweller.common.exception.*;
 import ru.marilka888.jeweller.model.Order;
 import ru.marilka888.jeweller.model.Role;
 import ru.marilka888.jeweller.model.User;
@@ -32,24 +31,28 @@ public class OrderService {
     private final UserRepository userRepository;
 
     @CacheEvict(value = {"userOrders", "userOrder", "allOrders"})
-    public void saveOrder(OrderRequest orderRequest, Principal principal) {
+    public void saveOrder(OrderRequest request, Principal principal) {
         try {
             User user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
 
             Order order = Order.builder()
-                    .title(orderRequest.getTitle())
-                    .description(orderRequest.getDescription())
-                    .price(orderRequest.getPrice())
+                    .title(request.getTitle())
+                    .description(request.getDescription())
+                    .price(request.getPrice())
                     .status(false)
                     .user(user)
                     .build();
 
             orderRepository.save(order);
         } catch (UserNotFoundException e) {
-            // todo log
-
+            log.warn("В БД не найден пользователь с email: {}", principal.getName());
+            throw new UserNotFoundException();
         } catch (NullPointerException e) {
-            throw new RuntimeException(); //todo НЕ ЗАПОЛНЕНЫ ПОЛЯ
+            log.warn("В запросе на создание заказа не заполнены обязательные поля");
+            throw new BadRequestException();
+        } catch (Exception e) {
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
         }
     }
 
@@ -60,7 +63,7 @@ public class OrderService {
             List<Order> orders = orderRepository.findAllByUser(user, pageable);
 
             if (orders.isEmpty()) {
-                throw new OrderNotFoundException("Договора не были найдены");
+                throw new OrderNotFoundException("Заказы не были найдены");
             }
 
             List<OrderResponse> response = orders.stream().map(order -> OrderResponse.builder()
@@ -75,14 +78,18 @@ public class OrderService {
 
             return response;
         } catch (UserNotFoundException e) {
-            // todo log
-
+            log.warn("В БД не найден пользователь с email: {}", principal.getName());
+            throw new UserNotFoundException();
+        } catch (NullPointerException e) {
+            log.warn("В запросе на получение заказов не заполнены обязательные поля");
+            throw new BadRequestException();
         } catch (OrderNotFoundException e) {
-            // todo log
+            log.warn("В БД не найдены заказы пользователя с email: {}", principal.getName());
+            throw new OrderNotFoundException();
         } catch (Exception e) {
-
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
         }
-        return null;
     }
 
     @Cacheable(value = "userOrder")
@@ -103,40 +110,52 @@ public class OrderService {
             response = user.getRole().equals(Role.ADMIN) || order.getUser().equals(user) ? response : null;
 
             if (ObjectUtils.isEmpty(response)) {
-                throw new UserNotFoundException("Данный заказ не принадлежит пользователю");//todo ex
+                throw new UserHaveNotOrder();
             }
             return response;
 
         } catch (UserNotFoundException e) {
-            // todo log
-
+            log.warn("В БД не найден пользователь с email: {}", principal.getName());
+            throw new UserNotFoundException();
+        } catch (NullPointerException e) {
+            log.warn("В запросе на получение заказа не заполнены обязательные поля");
+            throw new BadRequestException();
         } catch (OrderNotFoundException e) {
-            // todo log
+            log.warn("В БД не найдены заказы пользователя с email: {}", principal.getName());
+            throw new OrderNotFoundException();
+        } catch (UserHaveNotOrder e) {
+            log.warn("Заказ с id = {} не принадлежит пользователю с email: {}", id, principal.getName());
+            throw new UserHaveNotOrder();
         } catch (Exception e) {
-
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
         }
-        return null;
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @Cacheable("allOrders")
     public Page<Order> findAllOrders(Pageable pageable) {
-        return orderRepository.findAll(pageable);
+        try {
+            return orderRepository.findAll(pageable);
+        } catch (Exception e) {
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
+        }
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @CacheEvict(value = {"userOrders", "userOrder", "allOrders"})
-    public void updateOrder(OrderRequest orderRequest, String id) {
+    public void updateOrder(OrderRequest request, String id) {
         try {
             orderRepository.findById(Long.valueOf(id)).orElseThrow(OrderNotFoundException::new);
 
-            User user = userRepository.findById(toIntExact(orderRequest.userId)).orElseThrow(UserNotFoundException::new);
+            User user = userRepository.findById(toIntExact(request.userId)).orElseThrow(UserNotFoundException::new);
 
             Order order = Order.builder()
-                    .title(orderRequest.getTitle())
-                    .description(orderRequest.getDescription())
-                    .price(orderRequest.getPrice())
-                    .status(orderRequest.isStatus())
+                    .title(request.getTitle())
+                    .description(request.getDescription())
+                    .price(request.getPrice())
+                    .status(request.isStatus())
                     .user(user)
                     .build();
 
@@ -144,12 +163,17 @@ public class OrderService {
             log.info("Order with id = {} was update", order.getId());
 
         } catch (UserNotFoundException e) {
-            // todo log
-
-        } catch (OrderNotFoundException e) {
-            //todo
+            log.warn("В БД не найден пользователь для заказа с id: {}", id);
+            throw new UserNotFoundException();
         } catch (NullPointerException e) {
-            throw new RuntimeException(); //todo НЕ ЗАПОЛНЕНЫ ПОЛЯ
+            log.warn("В запросе на обновление заказа не заполнены обязательные поля");
+            throw new BadRequestException();
+        } catch (OrderNotFoundException e) {
+            log.warn("В БД не найден заказ с id: {}", id);
+            throw new OrderNotFoundException();
+        } catch (Exception e) {
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
         }
     }
 }
