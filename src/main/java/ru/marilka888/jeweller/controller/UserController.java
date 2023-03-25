@@ -1,5 +1,6 @@
 package ru.marilka888.jeweller.controller;
 
+import io.micrometer.core.annotation.Counted;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -23,6 +24,7 @@ public class UserController {
 
     @GetMapping(path = "/profile")
     @Transactional
+    @Counted(value = "jeweller.shop.userController.getUser")
     public Object getUser(Principal principal) {
         try {
             return ResponseEntity.ok(userService.findProfile(principal));
@@ -35,6 +37,7 @@ public class UserController {
 
     @PostMapping(path = "/profile")
     @Transactional
+    @Counted(value = "jeweller.shop.userController.updateUser")
     public Object updateUser(@RequestBody UserRequest user) {
         try {
             userService.updateUser(user);
@@ -51,6 +54,7 @@ public class UserController {
 
     @GetMapping("/users/all")
     @Transactional
+    @Counted(value = "jeweller.shop.userController.getUserList")
     public Object getUserList(@PageableDefault Pageable pageable) {
         try {
             return ResponseEntity.ok(userService.findAll(pageable));
@@ -61,6 +65,7 @@ public class UserController {
 
     @GetMapping(path = "/users/{id}")
     @Transactional
+    @Counted(value = "jeweller.shop.userController.getUser")
     public Object getUser(@PathVariable Integer id) {
         try {
             return ResponseEntity.ok(userService.findUser(id));

@@ -1,5 +1,6 @@
 package ru.marilka888.jeweller.service;
 
+import io.micrometer.core.annotation.Counted;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -22,6 +23,7 @@ public class FavourService {
     private final FavourRepository favourRepository;
 
     @Cacheable(value = "allFavours")
+    @Counted(value = "jeweller.shop.favourService.ERROR.findAllFavours", recordFailuresOnly = true)
     public Page<Favour> findAllFavours(Pageable pageable) {
         try {
             return favourRepository.findAll(pageable);
@@ -32,6 +34,7 @@ public class FavourService {
     }
 
     @Cacheable(value = "favourById")
+    @Counted(value = "jeweller.shop.favourService.ERROR.getFavourById", recordFailuresOnly = true)
     public Favour getFavourById(Long id) {
         try {
             Favour favour = favourRepository.findById(id).orElse(null);
@@ -47,6 +50,7 @@ public class FavourService {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @CacheEvict(value = {"allFavours", "favourById"})
+    @Counted(value = "jeweller.shop.favourService.ERROR.saveFavour", recordFailuresOnly = true)
     public void saveFavour(FavourRequest request) {
         try {
             Favour favour = Favour.builder()
@@ -67,6 +71,7 @@ public class FavourService {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @CacheEvict(value = {"allFavours", "favourById"})
+    @Counted(value = "jeweller.shop.favourService.ERROR.deleteFavour", recordFailuresOnly = true)
     public void deleteFavour(Long id) {
         try {
             favourRepository.deleteById(id);
