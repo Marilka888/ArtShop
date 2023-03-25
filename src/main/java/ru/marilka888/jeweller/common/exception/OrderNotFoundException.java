@@ -1,10 +1,11 @@
 package ru.marilka888.jeweller.common.exception;
 
-public class OrderNotFoundException extends RuntimeException{
+public class OrderNotFoundException extends RuntimeException {
 
     public OrderNotFoundException() {
         super("Заказ не был найден");
     }
+
     public OrderNotFoundException(String message) {
         super(message);
     }
