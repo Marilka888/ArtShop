@@ -1,5 +1,6 @@
 package ru.marilka888.jeweller.service;
 
+import io.micrometer.core.annotation.Counted;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -31,6 +32,7 @@ public class OrderService {
     private final UserRepository userRepository;
 
     @CacheEvict(value = {"userOrders", "userOrder", "allOrders"})
+    @Counted(value = "jeweller.shop.orderService.ERROR.saveOrder", recordFailuresOnly = true)
     public void saveOrder(OrderRequest request, Principal principal) {
         try {
             User user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
@@ -57,6 +59,7 @@ public class OrderService {
     }
 
     @Cacheable(value = "userOrders")
+    @Counted(value = "jeweller.shop.orderService.ERROR.getUserOrders", recordFailuresOnly = true)
     public List<OrderResponse> getUserOrders(Principal principal, Pageable pageable) {
         try {
             User user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
@@ -93,6 +96,7 @@ public class OrderService {
     }
 
     @Cacheable(value = "userOrder")
+    @Counted(value = "jeweller.shop.orderService.ERROR.getUserOrder", recordFailuresOnly = true)
     public OrderResponse getUserOrder(Principal principal, Long id) {
         try {
             User user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
@@ -134,6 +138,7 @@ public class OrderService {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @Cacheable("allOrders")
+    @Counted(value = "jeweller.shop.orderService.ERROR.findAllOrders", recordFailuresOnly = true)
     public Page<Order> findAllOrders(Pageable pageable) {
         try {
             return orderRepository.findAll(pageable);
@@ -145,6 +150,7 @@ public class OrderService {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @CacheEvict(value = {"userOrders", "userOrder", "allOrders"})
+    @Counted(value = "jeweller.shop.orderService.ERROR.updateOrder", recordFailuresOnly = true)
     public void updateOrder(OrderRequest request, String id) {
         try {
             orderRepository.findById(Long.valueOf(id)).orElseThrow(OrderNotFoundException::new);

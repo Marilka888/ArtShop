@@ -1,5 +1,6 @@
 package ru.marilka888.jeweller.controller;
 
+import io.micrometer.core.annotation.Counted;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -20,6 +21,7 @@ public class FavourController {
 
     @GetMapping(value = "/all")
     @Transactional
+    @Counted(value = "jeweller.shop.favourController.getFavours")
     public Object getFavours(@PageableDefault Pageable pageable) {
         try {
             return ResponseEntity.ok(favourService.findAllFavours(pageable));
@@ -30,6 +32,7 @@ public class FavourController {
 
     @GetMapping(value = "/{id}")
     @Transactional
+    @Counted(value = "jeweller.shop.favourController.getFavour")
     public Object getFavour(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(favourService.getFavourById(id));
@@ -40,6 +43,7 @@ public class FavourController {
 
     @PostMapping("/create")
     @Transactional
+    @Counted(value = "jeweller.shop.favourController.createFavour")
     public Object createFavour(@RequestBody FavourRequest favour) {
         try {
             favourService.saveFavour(favour);
@@ -53,6 +57,7 @@ public class FavourController {
 
     @PostMapping("/update")
     @Transactional
+    @Counted(value = "jeweller.shop.favourController.updateFavour")
     public Object updateFavour(@PathVariable FavourRequest favour) {
         try {
             favourService.saveFavour(favour);
@@ -66,6 +71,7 @@ public class FavourController {
 
     @DeleteMapping("/delete/{id}")
     @Transactional
+    @Counted(value = "jeweller.shop.favourController.deleteFavour")
     public Object deleteFavour(@PathVariable Long id) {
         try {
             favourService.deleteFavour(id);

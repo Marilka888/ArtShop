@@ -1,5 +1,6 @@
 package ru.marilka888.jeweller.service;
 
+import io.micrometer.core.annotation.Counted;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -24,6 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Cacheable(value = "userProfile")
+    @Counted(value = "jeweller.shop.userService.ERROR.findProfile", recordFailuresOnly = true)
     public UserResponse findProfile(Principal principal) {
         try {
             User user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
@@ -49,6 +51,7 @@ public class UserService {
     }
 
     @CacheEvict(value = {"userProfile", "allUsers", "userById"})
+    @Counted(value = "jeweller.shop.userService.ERROR.updateUser", recordFailuresOnly = true)
     public void updateUser(UserRequest request) {
         try {
             User user = userRepository.findByEmail(request.getEmail()).orElseThrow(UserNotFoundException::new);
@@ -77,6 +80,7 @@ public class UserService {
     }
 
     @Cacheable(value = "allUsers")
+    @Counted(value = "jeweller.shop.userService.ERROR.findAll", recordFailuresOnly = true)
     public Page<User> findAll(Pageable pageable) {
         try {
             return userRepository.findAll(pageable);
@@ -87,6 +91,7 @@ public class UserService {
     }
 
     @Cacheable(value = "userById")
+    @Counted(value = "jeweller.shop.userService.ERROR.findUser", recordFailuresOnly = true)
     public User findUser(Integer id) {
         try {
             return userRepository.findById(id).orElseThrow(UserNotFoundException::new);

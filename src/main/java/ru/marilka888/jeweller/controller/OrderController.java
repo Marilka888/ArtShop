@@ -1,5 +1,6 @@
 package ru.marilka888.jeweller.controller;
 
+import io.micrometer.core.annotation.Counted;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -22,6 +23,7 @@ public class OrderController {
 
     @PostMapping(value = "/create")
     @Transactional
+    @Counted(value = "jeweller.shop.orderController.createOrder")
     public Object createOrder(Principal principal, @RequestBody OrderRequest order) {
         try {
             orderService.saveOrder(order, principal);
@@ -37,6 +39,7 @@ public class OrderController {
 
     @GetMapping(value = "/all")
     @Transactional
+    @Counted(value = "jeweller.shop.orderController.getUserOrders")
     public Object getUserOrders(Principal principal, Pageable pageable) {
         try {
             return ResponseEntity.ok(orderService.getUserOrders(principal, pageable));
@@ -53,6 +56,7 @@ public class OrderController {
 
     @GetMapping(value = "/{id}")
     @Transactional
+    @Counted(value = "jeweller.shop.orderController.getUserOrder")
     public Object getUserOrder(Principal principal, @PathVariable Long id) {
         try {
             return ResponseEntity.ok(orderService.getUserOrder(principal, Long.valueOf(id)));
@@ -69,6 +73,7 @@ public class OrderController {
 
     @GetMapping("/admin/all")
     @Transactional
+    @Counted(value = "jeweller.shop.orderController.getAllOrders")
     public Object getAllOrders(@PageableDefault Pageable pageable) {
         try {
             return ResponseEntity.ok(orderService.findAllOrders(pageable));
@@ -79,6 +84,7 @@ public class OrderController {
 
     @PostMapping(value = "/{id}")
     @Transactional
+    @Counted(value = "jeweller.shop.orderController.updateUserOrder")
     public Object updateUserOrder(@RequestBody OrderRequest order, @PathVariable String id) {
         try {
             orderService.updateOrder(order, id);
