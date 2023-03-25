@@ -1,19 +1,14 @@
 package ru.marilka888.jeweller.model.request;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.marilka888.jeweller.model.Order;
 import ru.marilka888.jeweller.model.Role;
-import ru.marilka888.jeweller.model.token.Token;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Data
 public class UserRequest {
     private String phone;

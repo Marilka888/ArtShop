@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.marilka888.jeweller.model.request.AuthenticationRequest;
-import ru.marilka888.jeweller.model.response.AuthenticationResponse;
 import ru.marilka888.jeweller.model.request.RegisterRequest;
+import ru.marilka888.jeweller.model.response.AuthenticationResponse;
 import ru.marilka888.jeweller.service.auth.AuthenticationService;
 
 @RestController

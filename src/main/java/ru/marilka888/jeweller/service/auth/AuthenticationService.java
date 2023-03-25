@@ -7,15 +7,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.marilka888.jeweller.model.User;
 import ru.marilka888.jeweller.model.request.AuthenticationRequest;
-import ru.marilka888.jeweller.model.response.AuthenticationResponse;
 import ru.marilka888.jeweller.model.request.RegisterRequest;
+import ru.marilka888.jeweller.model.response.AuthenticationResponse;
 import ru.marilka888.jeweller.model.token.Token;
 import ru.marilka888.jeweller.repository.TokenRepository;
 import ru.marilka888.jeweller.repository.UserRepository;
 
-import static java.lang.Math.*;
-import static ru.marilka888.jeweller.model.Role.*;
-import static ru.marilka888.jeweller.model.token.TokenType.*;
+import static java.lang.Math.toIntExact;
+import static ru.marilka888.jeweller.model.Role.USER;
+import static ru.marilka888.jeweller.model.token.TokenType.BEARER;
 
 @Service
 @RequiredArgsConstructor

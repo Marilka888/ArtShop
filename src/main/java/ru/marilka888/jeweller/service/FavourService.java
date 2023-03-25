@@ -1,5 +1,6 @@
 package ru.marilka888.jeweller.service;
 
+import io.micrometer.core.annotation.Counted;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -9,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import ru.marilka888.jeweller.common.exception.BadRequestException;
+import ru.marilka888.jeweller.common.exception.InnerException;
 import ru.marilka888.jeweller.model.Favour;
 import ru.marilka888.jeweller.model.request.FavourRequest;
 import ru.marilka888.jeweller.repository.FavourRepository;
@@ -20,44 +23,62 @@ public class FavourService {
     private final FavourRepository favourRepository;
 
     @Cacheable(value = "allFavours")
+    @Counted(value = "jeweller.shop.favourService.ERROR.findAllFavours", recordFailuresOnly = true)
     public Page<Favour> findAllFavours(Pageable pageable) {
-        return favourRepository.findAll(pageable);
+        try {
+            return favourRepository.findAll(pageable);
+        } catch (Exception e) {
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
+        }
     }
 
     @Cacheable(value = "favourById")
+    @Counted(value = "jeweller.shop.favourService.ERROR.getFavourById", recordFailuresOnly = true)
     public Favour getFavourById(Long id) {
-        Favour favour = favourRepository.findById(id).orElse(null);
-        if (ObjectUtils.isEmpty(favour)) {
-            //todo log
+        try {
+            Favour favour = favourRepository.findById(id).orElse(null);
+            if (ObjectUtils.isEmpty(favour)) {
+                log.info("Услуги пока пустые");
+            }
+            return favour;
+        } catch (Exception e) {
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
         }
-        return favour;
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @CacheEvict(value = {"allFavours", "favourById"})
-    public void saveFavour(FavourRequest favourRequest) {
-        //todo valid
+    @Counted(value = "jeweller.shop.favourService.ERROR.saveFavour", recordFailuresOnly = true)
+    public void saveFavour(FavourRequest request) {
         try {
             Favour favour = Favour.builder()
-                    .title(favourRequest.getTitle())
-                    .description(favourRequest.getDescription())
-                    .price(favourRequest.getPrice())
+                    .title(request.getTitle())
+                    .description(request.getDescription())
+                    .price(request.getPrice())
                     .build();
             favourRepository.save(favour);
-            log.info("Saving new Order. Title: {}", favour.getTitle());//todo logs
+            log.info("Была сохранена новая услуга с названием: {}", favour.getTitle());
         } catch (NullPointerException e) {
-            throw new RuntimeException(); //todo НЕ ЗАПОЛНЕНЫ ПОЛЯ
+            log.warn("В запросе на создание/обновление новой услуги не заполнены обязательные поля");
+            throw new BadRequestException();
+        } catch (Exception e) {
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
         }
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @CacheEvict(value = {"allFavours", "favourById"})
+    @Counted(value = "jeweller.shop.favourService.ERROR.deleteFavour", recordFailuresOnly = true)
     public void deleteFavour(Long id) {
         try {
             favourRepository.deleteById(id);
-            log.info("Order with id = {} was deleted", id);//todo logs
+            log.info("Была удалена услуга с id: {}", id);
         } catch (Exception e) {
-            //todo log
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
         }
     }
 
