@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Data
 public class FavourRequest {
     private String title;

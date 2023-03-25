@@ -7,6 +7,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import ru.marilka888.jeweller.common.exception.BadRequestException;
+import ru.marilka888.jeweller.common.exception.InnerException;
 import ru.marilka888.jeweller.common.exception.UserNotFoundException;
 import ru.marilka888.jeweller.model.User;
 import ru.marilka888.jeweller.model.request.UserRequest;
@@ -38,7 +40,11 @@ public class UserService {
             return response;
 
         } catch (UserNotFoundException e) {
-            throw new RuntimeException(); //todo exception
+            log.warn("В БД не найден пользователь с email: {}", principal.getName());
+            throw new UserNotFoundException();
+        } catch (Exception e) {
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
         }
     }
 
@@ -59,15 +65,25 @@ public class UserService {
 
             userRepository.save(updatedUser);
         } catch (UserNotFoundException e) {
-            throw new RuntimeException(); //todo exception
+            log.warn("В БД не найден пользователь с email: {}", request.getEmail());
+            throw new UserNotFoundException();
         } catch (NullPointerException e) {
-            throw new RuntimeException(); //todo НЕ ЗАПОЛНЕНЫ ПОЛЯ
+            log.warn("В запросе на обновление пользователя не заполнены обязательные поля");
+            throw new BadRequestException();
+        } catch (Exception e) {
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
         }
     }
 
     @Cacheable(value = "allUsers")
     public Page<User> findAll(Pageable pageable) {
-        return userRepository.findAll(pageable);
+        try {
+            return userRepository.findAll(pageable);
+        } catch (Exception e) {
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
+        }
     }
 
     @Cacheable(value = "userById")
@@ -75,7 +91,11 @@ public class UserService {
         try {
             return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
         } catch (UserNotFoundException e) {
-            throw new RuntimeException(); //todo exception
+            log.warn("В БД не найден пользователь с id: {}", id);
+            throw new UserNotFoundException();
+        } catch (Exception e) {
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
         }
     }
 

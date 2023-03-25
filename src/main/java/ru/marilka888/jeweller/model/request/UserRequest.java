@@ -13,7 +13,6 @@ import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Data
 public class UserRequest {
     private String phone;
