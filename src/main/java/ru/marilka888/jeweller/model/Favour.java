@@ -15,7 +15,7 @@ public class Favour {
 
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @JsonIgnore
     @EqualsAndHashCode.Exclude
     private Integer id;

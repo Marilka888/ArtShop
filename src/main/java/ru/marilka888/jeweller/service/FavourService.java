@@ -48,7 +48,6 @@ public class FavourService {
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     @CacheEvict(value = {"allFavours", "favourById"})
     @Counted(value = "jeweller.shop.favourService.ERROR.saveFavour", recordFailuresOnly = true)
     public void saveFavour(FavourRequest request) {
@@ -69,7 +68,6 @@ public class FavourService {
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     @CacheEvict(value = {"allFavours", "favourById"})
     @Counted(value = "jeweller.shop.favourService.ERROR.deleteFavour", recordFailuresOnly = true)
     public void deleteFavour(Long id) {
