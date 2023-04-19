@@ -12,15 +12,12 @@ spring:
     allFavours, favourById, userOrders, userOrder, allOrders"
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 server:
-  port: 8082
+  port: 8080
   # prometeus
 management:
   endpoints:

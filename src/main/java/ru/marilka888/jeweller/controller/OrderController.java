@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -45,12 +46,12 @@ public class OrderController {
             return ResponseEntity.ok(orderService.getUserOrders(principal, pageable));
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound();
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.noContent();
         } catch (InnerException e) {
             return ResponseEntity.internalServerError();
         } catch (BadRequestException e) {
             return ResponseEntity.badRequest();
-        } catch (OrderNotFoundException e) {
-            return ResponseEntity.noContent();
         }
     }
 
@@ -62,16 +63,17 @@ public class OrderController {
             return ResponseEntity.ok(orderService.getUserOrder(principal, Long.valueOf(id)));
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound();
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.noContent();
         } catch (InnerException e) {
             return ResponseEntity.internalServerError();
         } catch (BadRequestException | UserHaveNotOrder e) {
             return ResponseEntity.badRequest();
-        } catch (OrderNotFoundException e) {
-            return ResponseEntity.noContent();
         }
     }
 
     @GetMapping("/admin/all")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     @Counted(value = "jeweller.shop.orderController.getAllOrders")
     public Object getAllOrders(@PageableDefault Pageable pageable) {
@@ -83,18 +85,19 @@ public class OrderController {
     }
 
     @PostMapping(value = "/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     @Counted(value = "jeweller.shop.orderController.updateUserOrder")
     public Object updateUserOrder(@RequestBody OrderRequest order, @PathVariable String id) {
         try {
             orderService.updateOrder(order, id);
             return ResponseEntity.ok();
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.noContent();
         } catch (UserNotFoundException | InnerException e) {
             return ResponseEntity.internalServerError();
         } catch (BadRequestException e) {
             return ResponseEntity.badRequest();
-        } catch (OrderNotFoundException e) {
-            return ResponseEntity.noContent();
         }
     }
 

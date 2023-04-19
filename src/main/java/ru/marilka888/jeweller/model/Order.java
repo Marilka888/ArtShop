@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class Order {
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @JsonIgnore
     @EqualsAndHashCode.Exclude
     private Long id;
