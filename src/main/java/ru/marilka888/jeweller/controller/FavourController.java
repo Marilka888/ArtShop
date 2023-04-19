@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.marilka888.jeweller.common.exception.BadRequestException;
@@ -42,6 +43,7 @@ public class FavourController {
     }
 
     @PostMapping("/create")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     @Counted(value = "jeweller.shop.favourController.createFavour")
     public Object createFavour(@RequestBody FavourRequest favour) {
@@ -56,6 +58,7 @@ public class FavourController {
     }
 
     @PostMapping("/update")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     @Counted(value = "jeweller.shop.favourController.updateFavour")
     public Object updateFavour(@PathVariable FavourRequest favour) {
@@ -70,6 +73,7 @@ public class FavourController {
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     @Counted(value = "jeweller.shop.favourController.deleteFavour")
     public Object deleteFavour(@PathVariable Long id) {

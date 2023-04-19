@@ -136,7 +136,6 @@ public class OrderService {
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     @Cacheable("allOrders")
     @Counted(value = "jeweller.shop.orderService.ERROR.findAllOrders", recordFailuresOnly = true)
     public Page<Order> findAllOrders(Pageable pageable) {
@@ -148,7 +147,6 @@ public class OrderService {
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     @CacheEvict(value = {"userOrders", "userOrder", "allOrders"})
     @Counted(value = "jeweller.shop.orderService.ERROR.updateOrder", recordFailuresOnly = true)
     public void updateOrder(OrderRequest request, String id) {
