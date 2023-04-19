@@ -5,9 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import ru.marilka888.jeweller.common.exception.*;
@@ -60,26 +58,23 @@ public class OrderService {
 
     @Cacheable(value = "userOrders")
     @Counted(value = "jeweller.shop.orderService.ERROR.getUserOrders", recordFailuresOnly = true)
-    public List<OrderResponse> getUserOrders(Principal principal, Pageable pageable) {
+    public List<OrderResponse> getUserOrders(Principal principal) {
         try {
             User user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
-            List<Order> orders = orderRepository.findAllByUser(user, pageable);
+            List<Order> orders = orderRepository.findAllByUser(user);
 
             if (orders.isEmpty()) {
                 throw new OrderNotFoundException("Заказы не были найдены");
             }
 
-            List<OrderResponse> response = orders.stream().map(order -> OrderResponse.builder()
+            return orders.stream().map(order -> OrderResponse.builder()
                             .title(order.getTitle())
                             .description(order.getDescription())
                             .price(order.getPrice())
                             .status(order.isStatus())
                             .dateOfCreated(order.getDateOfCreated())
-                            .userId(order.getUser().getId())
                             .build())
                     .toList();
-
-            return response;
         } catch (UserNotFoundException e) {
             log.warn("В БД не найден пользователь с email: {}", principal.getName());
             throw new UserNotFoundException();
@@ -138,9 +133,23 @@ public class OrderService {
 
     @Cacheable("allOrders")
     @Counted(value = "jeweller.shop.orderService.ERROR.findAllOrders", recordFailuresOnly = true)
-    public Page<Order> findAllOrders(Pageable pageable) {
+    public List<OrderResponse> findAllOrders() {
         try {
-            return orderRepository.findAll(pageable);
+            List<Order> orders = orderRepository.findAll();
+
+            if (orders.isEmpty()) {
+                throw new OrderNotFoundException("Заказы не были найдены");
+            }
+
+            return orders.stream().map(order -> OrderResponse.builder()
+                            .title(order.getTitle())
+                            .description(order.getDescription())
+                            .price(order.getPrice())
+                            .status(order.isStatus())
+                            .dateOfCreated(order.getDateOfCreated())
+                            .userId(order.getUser().getId())
+                            .build())
+                    .toList();
         } catch (Exception e) {
             log.warn("Произошла внутренняя ошибка");
             throw new InnerException();
@@ -156,6 +165,7 @@ public class OrderService {
             User user = userRepository.findById(toIntExact(request.userId)).orElseThrow(UserNotFoundException::new);
 
             Order order = Order.builder()
+                    .id(Long.valueOf(id))
                     .title(request.getTitle())
                     .description(request.getDescription())
                     .price(request.getPrice())

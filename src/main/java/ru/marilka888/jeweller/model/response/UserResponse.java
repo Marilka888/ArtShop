@@ -1,5 +1,6 @@
 package ru.marilka888.jeweller.model.response;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -13,13 +14,20 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class UserResponse {
+    @JsonSerialize()
     private String phone;
+    @JsonSerialize()
     private String firstname;
+    @JsonSerialize()
     private String lastname;
+    @JsonSerialize()
     private String email;
-    private String password;
+    @JsonSerialize()
     private Integer age;
+    @JsonSerialize()
     private LocalDateTime dateOfCreated;
+    @JsonSerialize()
     private Role role;
-    private List<Order> orders;
+    @JsonSerialize()
+    private List<OrderResponse> orders;
 }
