@@ -5,18 +5,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.marilka888.jeweller.common.exception.BadRequestException;
 import ru.marilka888.jeweller.common.exception.InnerException;
 import ru.marilka888.jeweller.common.exception.UserNotFoundException;
 import ru.marilka888.jeweller.model.User;
 import ru.marilka888.jeweller.model.request.UserRequest;
+import ru.marilka888.jeweller.model.response.OrderResponse;
 import ru.marilka888.jeweller.model.response.UserResponse;
 import ru.marilka888.jeweller.repository.UserRepository;
 
 import java.security.Principal;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -29,7 +29,8 @@ public class UserService {
     public UserResponse findProfile(Principal principal) {
         try {
             User user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
-            UserResponse response = UserResponse.builder()
+
+            return UserResponse.builder()
                     .role(user.getRole())
                     .firstname(user.getFirstname())
                     .lastname(user.getLastname())
@@ -37,9 +38,8 @@ public class UserService {
                     .email(user.getEmail())
                     .age(user.getAge())
                     .dateOfCreated(user.getDateOfCreated())
-                    .orders(user.getOrders())
+                    .orders(getOrders(user))
                     .build();
-            return response;
 
         } catch (UserNotFoundException e) {
             log.warn("В БД не найден пользователь с email: {}", principal.getName());
@@ -54,9 +54,9 @@ public class UserService {
     @Counted(value = "jeweller.shop.userService.ERROR.updateUser", recordFailuresOnly = true)
     public void updateUser(UserRequest request) {
         try {
-            User user = userRepository.findByEmail(request.getEmail()).orElseThrow(UserNotFoundException::new);
-
+            User userDb = userRepository.findByEmail(request.getEmail()).orElseThrow(UserNotFoundException::new);
             User updatedUser = User.builder()
+                    .id(userDb.getId())
                     .role(request.getRole())
                     .firstname(request.getFirstname())
                     .lastname(request.getLastname())
@@ -81,9 +81,20 @@ public class UserService {
 
     @Cacheable(value = "allUsers")
     @Counted(value = "jeweller.shop.userService.ERROR.findAll", recordFailuresOnly = true)
-    public Page<User> findAll(Pageable pageable) {
+    public List<UserResponse> findAll() {
         try {
-            return userRepository.findAll(pageable);
+            List<User> users = userRepository.findAll();
+            return users.stream().map(user -> UserResponse.builder()
+                            .role(user.getRole())
+                            .firstname(user.getFirstname())
+                            .lastname(user.getLastname())
+                            .phone(user.getPhone())
+                            .email(user.getEmail())
+                            .age(user.getAge())
+                            .dateOfCreated(user.getDateOfCreated())
+                            .build())
+                    .toList();
+
         } catch (Exception e) {
             log.warn("Произошла внутренняя ошибка");
             throw new InnerException();
@@ -92,9 +103,20 @@ public class UserService {
 
     @Cacheable(value = "userById")
     @Counted(value = "jeweller.shop.userService.ERROR.findUser", recordFailuresOnly = true)
-    public User findUser(Integer id) {
+    public UserResponse findUser(Integer id) {
         try {
-            return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+            User user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+
+            return UserResponse.builder()
+                    .role(user.getRole())
+                    .firstname(user.getFirstname())
+                    .lastname(user.getLastname())
+                    .phone(user.getPhone())
+                    .email(user.getEmail())
+                    .age(user.getAge())
+                    .dateOfCreated(user.getDateOfCreated())
+                    .orders(getOrders(user))
+                    .build();
         } catch (UserNotFoundException e) {
             log.warn("В БД не найден пользователь с id: {}", id);
             throw new UserNotFoundException();
@@ -102,5 +124,18 @@ public class UserService {
             log.warn("Произошла внутренняя ошибка");
             throw new InnerException();
         }
+    }
+
+    private static List<OrderResponse> getOrders(User user) {
+        return user.getOrders()
+                .stream()
+                .map(order -> OrderResponse.builder()
+                        .title(order.getTitle())
+                        .description(order.getDescription())
+                        .price(order.getPrice())
+                        .status(order.isStatus())
+                        .dateOfCreated(order.getDateOfCreated())
+                        .build())
+                .toList();
     }
 }

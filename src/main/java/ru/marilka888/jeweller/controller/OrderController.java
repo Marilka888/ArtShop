@@ -3,7 +3,8 @@ package ru.marilka888.jeweller.controller;
 import io.micrometer.core.annotation.Counted;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -41,9 +42,9 @@ public class OrderController {
     @GetMapping(value = "/all")
     @Transactional
     @Counted(value = "jeweller.shop.orderController.getUserOrders")
-    public Object getUserOrders(Principal principal, Pageable pageable) {
+    public Object getUserOrders(Principal principal) {
         try {
-            return ResponseEntity.ok(orderService.getUserOrders(principal, pageable));
+            return ResponseEntity.ok(orderService.getUserOrders(principal));
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound();
         } catch (OrderNotFoundException e) {
@@ -60,7 +61,7 @@ public class OrderController {
     @Counted(value = "jeweller.shop.orderController.getUserOrder")
     public Object getUserOrder(Principal principal, @PathVariable Long id) {
         try {
-            return ResponseEntity.ok(orderService.getUserOrder(principal, Long.valueOf(id)));
+            return ResponseEntity.ok(orderService.getUserOrder(principal, id));
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound();
         } catch (OrderNotFoundException e) {
@@ -76,9 +77,9 @@ public class OrderController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     @Counted(value = "jeweller.shop.orderController.getAllOrders")
-    public Object getAllOrders(@PageableDefault Pageable pageable) {
+    public Object getAllOrders() {
         try {
-            return ResponseEntity.ok(orderService.findAllOrders(pageable));
+            return ResponseEntity.ok(orderService.findAllOrders());
         } catch (InnerException e) {
             return ResponseEntity.internalServerError();
         }
@@ -91,7 +92,7 @@ public class OrderController {
     public Object updateUserOrder(@RequestBody OrderRequest order, @PathVariable String id) {
         try {
             orderService.updateOrder(order, id);
-            return ResponseEntity.ok();
+            return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).header(HttpHeaders.LOCATION, "/api/orders/admin/all").build();
         } catch (OrderNotFoundException e) {
             return ResponseEntity.noContent();
         } catch (UserNotFoundException | InnerException e) {

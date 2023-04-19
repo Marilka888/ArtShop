@@ -2,9 +2,11 @@ package ru.marilka888.jeweller.controller;
 
 import io.micrometer.core.annotation.Counted;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.marilka888.jeweller.common.exception.BadRequestException;
@@ -17,7 +19,8 @@ import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/users")
+@RequestMapping("/api/users")
+@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -32,6 +35,9 @@ public class UserController {
             return ResponseEntity.notFound();
         } catch (InnerException e) {
             return ResponseEntity.internalServerError();
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+            return ResponseEntity.internalServerError();
         }
     }
 
@@ -41,7 +47,7 @@ public class UserController {
     public Object updateUser(@RequestBody UserRequest user) {
         try {
             userService.updateUser(user);
-            return ResponseEntity.ok();
+            return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).header(HttpHeaders.LOCATION, "/api/users/profile").build();
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound();
         } catch (BadRequestException e) {
@@ -52,18 +58,20 @@ public class UserController {
     }
 
 
-    @GetMapping("/users/all")
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     @Counted(value = "jeweller.shop.userController.getUserList")
-    public Object getUserList(@PageableDefault Pageable pageable) {
+    public Object getUserList() {
         try {
-            return ResponseEntity.ok(userService.findAll(pageable));
+            return ResponseEntity.ok(userService.findAll());
         } catch (InnerException e) {
             return ResponseEntity.internalServerError();
         }
     }
 
-    @GetMapping(path = "/users/{id}")
+    @GetMapping(path = "/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     @Counted(value = "jeweller.shop.userController.getUser")
     public Object getUser(@PathVariable Integer id) {

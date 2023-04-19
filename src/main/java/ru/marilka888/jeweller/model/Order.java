@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class Order {
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @JsonIgnore
     @EqualsAndHashCode.Exclude
     private Long id;
@@ -42,10 +42,6 @@ public class Order {
     @CreationTimestamp
     private LocalDateTime dateOfCreated;
 
-    @PrePersist
-    private void init() {
-        dateOfCreated = LocalDateTime.now();
-    }
 }
 
 
