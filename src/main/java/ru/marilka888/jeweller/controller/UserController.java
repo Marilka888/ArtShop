@@ -3,6 +3,8 @@ package ru.marilka888.jeweller.controller;
 import io.micrometer.core.annotation.Counted;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,7 +47,7 @@ public class UserController {
     public Object updateUser(@RequestBody UserRequest user) {
         try {
             userService.updateUser(user);
-            return ResponseEntity.ok();
+            return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).header(HttpHeaders.LOCATION, "/api/users/profile").build();
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound();
         } catch (BadRequestException e) {

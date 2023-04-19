@@ -1,9 +1,13 @@
 package ru.marilka888.jeweller.controller;
 
 import io.micrometer.core.annotation.Counted;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,10 +17,13 @@ import ru.marilka888.jeweller.common.exception.InnerException;
 import ru.marilka888.jeweller.model.request.FavourRequest;
 import ru.marilka888.jeweller.service.FavourService;
 
+import java.io.IOException;
+
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/favours")
+@Slf4j
 public class FavourController {
     private final FavourService favourService;
 
@@ -49,7 +56,7 @@ public class FavourController {
     public Object createFavour(@RequestBody FavourRequest favour) {
         try {
             favourService.saveFavour(favour);
-            return ResponseEntity.ok();
+            return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).header(HttpHeaders.LOCATION, "/api/favours/all").build();
         } catch (InnerException e) {
             return ResponseEntity.internalServerError();
         } catch (BadRequestException e) {
@@ -64,7 +71,7 @@ public class FavourController {
     public Object updateFavour(@PathVariable FavourRequest favour) {
         try {
             favourService.saveFavour(favour);
-            return ResponseEntity.ok();
+            return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).header(HttpHeaders.LOCATION, "/api/favours/all").build();
         } catch (InnerException e) {
             return ResponseEntity.internalServerError();
         } catch (BadRequestException e) {
@@ -79,7 +86,7 @@ public class FavourController {
     public Object deleteFavour(@PathVariable Long id) {
         try {
             favourService.deleteFavour(id);
-            return ResponseEntity.ok();
+            return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).header(HttpHeaders.LOCATION, "/api/favours/all").build();
         } catch (InnerException e) {
             return ResponseEntity.internalServerError();
         }

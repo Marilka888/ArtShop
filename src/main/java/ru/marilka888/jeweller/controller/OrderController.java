@@ -3,6 +3,8 @@ package ru.marilka888.jeweller.controller;
 import io.micrometer.core.annotation.Counted;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -90,7 +92,7 @@ public class OrderController {
     public Object updateUserOrder(@RequestBody OrderRequest order, @PathVariable String id) {
         try {
             orderService.updateOrder(order, id);
-            return ResponseEntity.ok();
+            return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).header(HttpHeaders.LOCATION, "/api/orders/admin/all").build();
         } catch (OrderNotFoundException e) {
             return ResponseEntity.noContent();
         } catch (UserNotFoundException | InnerException e) {

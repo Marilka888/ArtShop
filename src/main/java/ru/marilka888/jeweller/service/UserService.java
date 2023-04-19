@@ -13,7 +13,6 @@ import ru.marilka888.jeweller.model.User;
 import ru.marilka888.jeweller.model.request.UserRequest;
 import ru.marilka888.jeweller.model.response.OrderResponse;
 import ru.marilka888.jeweller.model.response.UserResponse;
-import ru.marilka888.jeweller.repository.OrderRepository;
 import ru.marilka888.jeweller.repository.UserRepository;
 
 import java.security.Principal;
@@ -24,7 +23,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final OrderRepository orderRepository;
 
     @Cacheable(value = "userProfile")
     @Counted(value = "jeweller.shop.userService.ERROR.findProfile", recordFailuresOnly = true)
@@ -129,7 +127,7 @@ public class UserService {
     }
 
     private static List<OrderResponse> getOrders(User user) {
-        List<OrderResponse> orders = user.getOrders()
+        return user.getOrders()
                 .stream()
                 .map(order -> OrderResponse.builder()
                         .title(order.getTitle())
@@ -139,6 +137,5 @@ public class UserService {
                         .dateOfCreated(order.getDateOfCreated())
                         .build())
                 .toList();
-        return orders;
     }
 }
