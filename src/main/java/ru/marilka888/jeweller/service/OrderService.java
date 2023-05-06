@@ -5,22 +5,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import ru.marilka888.jeweller.common.exception.*;
-import ru.marilka888.jeweller.model.Order;
-import ru.marilka888.jeweller.model.Role;
-import ru.marilka888.jeweller.model.User;
+import ru.marilka888.jeweller.model.*;
 import ru.marilka888.jeweller.model.request.OrderRequest;
 import ru.marilka888.jeweller.model.response.OrderResponse;
+import ru.marilka888.jeweller.repository.FavourRepository;
 import ru.marilka888.jeweller.repository.OrderRepository;
 import ru.marilka888.jeweller.repository.UserRepository;
 
 import java.security.Principal;
 import java.util.List;
 
-import static java.lang.Math.toIntExact;
+import static ru.marilka888.jeweller.model.Stage.CREATED;
+import static ru.marilka888.jeweller.model.Stage.PAID;
 
 @Service
 @Slf4j
@@ -28,19 +27,23 @@ import static java.lang.Math.toIntExact;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final FavourRepository favourRepository;
 
     @CacheEvict(value = {"userOrders", "userOrder", "allOrders"})
-    @Counted(value = "jeweller.shop.orderService.ERROR.saveOrder", recordFailuresOnly = true)
-    public void saveOrder(OrderRequest request, Principal principal) {
+    @Counted(value = "jeweller.shop.orderService.ERROR.createOrder", recordFailuresOnly = true)
+    public void createOrder(OrderRequest request, Principal principal) {
         try {
             User user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
+            Favour favour = favourRepository.findById(request.favourId).orElseThrow(NullPointerException::new);
+            var sum = request.getNum() * favour.getPrice();
 
             Order order = Order.builder()
-                    .title(request.getTitle())
-                    .description(request.getDescription())
-                    .price(request.getPrice())
-                    .status(false)
                     .user(user)
+                    .favour(favour)
+                    .description(request.getDescription().orElse(null))
+                    .stage(CREATED)
+                    .sum(sum)
+                    .status(false)
                     .build();
 
             orderRepository.save(order);
@@ -56,6 +59,13 @@ public class OrderService {
         }
     }
 
+    @CacheEvict(value = {"userOrders", "userOrder", "allOrders"})
+    @Counted(value = "jeweller.shop.orderService.ERROR.payOrder", recordFailuresOnly = true)
+    public void payOrder(Long id) {
+        Order order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
+        updateOrder(order, PAID, false);
+    }
+
     @Cacheable(value = "userOrders")
     @Counted(value = "jeweller.shop.orderService.ERROR.getUserOrders", recordFailuresOnly = true)
     public List<OrderResponse> getUserOrders(Principal principal) {
@@ -66,11 +76,12 @@ public class OrderService {
             if (orders.isEmpty()) {
                 throw new OrderNotFoundException("Заказы не были найдены");
             }
-
             return orders.stream().map(order -> OrderResponse.builder()
-                            .title(order.getTitle())
+                            .userId(order.getUser().getId())
+                            .favour(order.favour)
                             .description(order.getDescription())
-                            .price(order.getPrice())
+                            .stage(order.getStage())
+                            .sum(order.getSum())
                             .status(order.isStatus())
                             .dateOfCreated(order.getDateOfCreated())
                             .build())
@@ -98,12 +109,13 @@ public class OrderService {
             Order order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
 
             OrderResponse response = OrderResponse.builder()
-                    .title(order.getTitle())
+                    .userId(order.getUser().getId())
+                    .favour(order.favour)
                     .description(order.getDescription())
-                    .price(order.getPrice())
+                    .stage(order.getStage())
+                    .sum(order.getSum())
                     .status(order.isStatus())
                     .dateOfCreated(order.getDateOfCreated())
-                    .userId(order.getUser().getId())
                     .build();
 
             response = user.getRole().equals(Role.ADMIN) || order.getUser().equals(user) ? response : null;
@@ -142,12 +154,13 @@ public class OrderService {
             }
 
             return orders.stream().map(order -> OrderResponse.builder()
-                            .title(order.getTitle())
+                            .userId(order.getUser().getId())
+                            .favour(order.favour)
                             .description(order.getDescription())
-                            .price(order.getPrice())
+                            .stage(order.getStage())
+                            .sum(order.getSum())
                             .status(order.isStatus())
                             .dateOfCreated(order.getDateOfCreated())
-                            .userId(order.getUser().getId())
                             .build())
                     .toList();
         } catch (Exception e) {
@@ -160,31 +173,34 @@ public class OrderService {
     @Counted(value = "jeweller.shop.orderService.ERROR.updateOrder", recordFailuresOnly = true)
     public void updateOrder(OrderRequest request, String id) {
         try {
-            orderRepository.findById(Long.valueOf(id)).orElseThrow(OrderNotFoundException::new);
-
-            User user = userRepository.findById(toIntExact(request.userId)).orElseThrow(UserNotFoundException::new);
-
-            Order order = Order.builder()
-                    .id(Long.valueOf(id))
-                    .title(request.getTitle())
-                    .description(request.getDescription())
-                    .price(request.getPrice())
-                    .status(request.isStatus())
-                    .user(user)
-                    .build();
-
-            orderRepository.save(order);
+            Order order = orderRepository.findById(Long.valueOf(id)).orElseThrow(OrderNotFoundException::new);
+            updateOrder(order, CREATED, false);
             log.info("Order with id = {} was update", order.getId());
 
-        } catch (UserNotFoundException e) {
-            log.warn("В БД не найден пользователь для заказа с id: {}", id);
-            throw new UserNotFoundException();
-        } catch (NullPointerException e) {
-            log.warn("В запросе на обновление заказа не заполнены обязательные поля");
-            throw new BadRequestException();
         } catch (OrderNotFoundException e) {
             log.warn("В БД не найден заказ с id: {}", id);
             throw new OrderNotFoundException();
+        } catch (Exception e) {
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
+        }
+    }
+
+    private void updateOrder(Order order, Stage stage, Boolean status) {
+        try {
+            Order updatedOrder = Order.builder()
+                    .user(order.getUser())
+                    .favour(order.getFavour())
+                    .description(order.getDescription())
+                    .stage(stage)
+                    .sum(order.getSum())
+                    .status(status)
+                    .build();
+
+            orderRepository.save(updatedOrder);
+        } catch (NullPointerException e) {
+            log.warn("В запросе на создание заказа не заполнены обязательные поля");
+            throw new BadRequestException();
         } catch (Exception e) {
             log.warn("Произошла внутренняя ошибка");
             throw new InnerException();

@@ -5,14 +5,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import ru.marilka888.jeweller.common.exception.BadRequestException;
 import ru.marilka888.jeweller.common.exception.InnerException;
 import ru.marilka888.jeweller.model.Favour;
 import ru.marilka888.jeweller.model.request.FavourRequest;
+import ru.marilka888.jeweller.model.response.FavourResponse;
 import ru.marilka888.jeweller.repository.FavourRepository;
 
 @Service
@@ -23,9 +22,12 @@ public class FavourService {
 
     @Cacheable(value = "allFavours")
     @Counted(value = "jeweller.shop.favourService.ERROR.findAllFavours", recordFailuresOnly = true)
-    public Page<Favour> findAllFavours(Pageable pageable) {
+    public FavourResponse findAllFavours() {
         try {
-            return favourRepository.findAll(pageable);
+            return FavourResponse.builder()
+                    .success(true)
+                    .favours(favourRepository.findAll())
+                    .build();
         } catch (Exception e) {
             log.warn("Произошла внутренняя ошибка");
             throw new InnerException();
@@ -34,13 +36,16 @@ public class FavourService {
 
     @Cacheable(value = "favourById")
     @Counted(value = "jeweller.shop.favourService.ERROR.getFavourById", recordFailuresOnly = true)
-    public Favour getFavourById(Long id) {
+    public FavourResponse getFavourById(Long id) {
         try {
             Favour favour = favourRepository.findById(id).orElse(null);
             if (ObjectUtils.isEmpty(favour)) {
                 log.info("Услуги пока пустые");
             }
-            return favour;
+            return FavourResponse.builder()
+                    .success(true)
+                    .favour(favour)
+                    .build();
         } catch (Exception e) {
             log.warn("Произошла внутренняя ошибка");
             throw new InnerException();

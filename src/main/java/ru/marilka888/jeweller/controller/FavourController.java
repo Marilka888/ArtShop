@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.marilka888.jeweller.common.exception.BadRequestException;
 import ru.marilka888.jeweller.common.exception.InnerException;
 import ru.marilka888.jeweller.model.request.FavourRequest;
+import ru.marilka888.jeweller.model.response.FavourResponse;
 import ru.marilka888.jeweller.service.FavourService;
 
 import java.io.IOException;
@@ -24,15 +26,16 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @RequestMapping("/api/favours")
 @Slf4j
+@CrossOrigin
 public class FavourController {
     private final FavourService favourService;
 
     @GetMapping(value = "/all")
     @Transactional
     @Counted(value = "jeweller.shop.favourController.getFavours")
-    public Object getFavours(@PageableDefault Pageable pageable) {
+    public Object getFavours() {
         try {
-            return ResponseEntity.ok(favourService.findAllFavours(pageable));
+            return ResponseEntity.ok(favourService.findAllFavours());
         } catch (InnerException e) {
             return ResponseEntity.internalServerError();
         }

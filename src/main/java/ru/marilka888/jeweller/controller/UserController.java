@@ -21,6 +21,7 @@ import java.security.Principal;
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
 @Slf4j
+@CrossOrigin
 public class UserController {
 
     private final UserService userService;

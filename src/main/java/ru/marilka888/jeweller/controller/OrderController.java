@@ -20,6 +20,7 @@ import java.security.Principal;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/orders")
+@CrossOrigin
 public class OrderController {
     private final OrderService orderService;
 
@@ -28,7 +29,23 @@ public class OrderController {
     @Counted(value = "jeweller.shop.orderController.createOrder")
     public Object createOrder(Principal principal, @RequestBody OrderRequest order) {
         try {
-            orderService.saveOrder(order, principal);
+            orderService.createOrder(order, principal);
+            return ResponseEntity.ok();
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound();
+        } catch (InnerException e) {
+            return ResponseEntity.internalServerError();
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest();
+        }
+    }
+
+    @PostMapping(value = "/pay/{id}")
+    @Transactional
+    @Counted(value = "jeweller.shop.orderController.createOrder")
+    public Object payOrder(@PathVariable Long id) {
+        try {
+            orderService.payOrder(id);
             return ResponseEntity.ok();
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound();

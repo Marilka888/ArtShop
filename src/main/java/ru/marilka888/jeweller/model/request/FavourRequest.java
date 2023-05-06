@@ -12,5 +12,5 @@ public class FavourRequest {
 
     private String description;
 
-    private String price;
+    private Integer price;
 }

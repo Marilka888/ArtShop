@@ -1,6 +1,5 @@
 package ru.marilka888.jeweller.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -18,26 +17,23 @@ public class Order {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @JsonIgnore
     @EqualsAndHashCode.Exclude
     private Long id;
-
-    @Column(name = "title")
-    private String title;
-
-    @Column(name = "description", columnDefinition = "text")
-    private String description;
-
-    @Column(name = "price")
-    private String price;
-
-    @Column(name = "status")
-    private boolean status;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     public User user;
-
+    @ManyToOne
+    @JoinColumn(name = "favour_id")
+    public Favour favour;
+    @Column(name = "description", columnDefinition = "text")
+    private String description;
+    @Column(name = "stage")
+    private Stage stage;
+    @Column(name = "sum")
+    private Integer sum;
+    @Column(name = "status")
+    private boolean status;
     @Column(name = "date_of_created")
     @CreationTimestamp
     private LocalDateTime dateOfCreated;
