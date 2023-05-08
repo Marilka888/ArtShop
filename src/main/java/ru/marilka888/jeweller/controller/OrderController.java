@@ -55,6 +55,24 @@ public class OrderController {
         }
     }
 
+    @PostMapping(value = "/admin/completed/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Transactional
+    @Counted(value = "jeweller.shop.orderController.createOrder")
+    public Object completedOrder(@PathVariable Integer id) {
+        try {
+            System.out.println("id 2232  " + id);
+            orderService.completedOrder(Long.valueOf(id));
+            return ResponseEntity.ok(true);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound();
+        } catch (InnerException e) {
+            return ResponseEntity.internalServerError();
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest();
+        }
+    }
+
     @GetMapping(value = "/all")
     @Transactional
     @Counted(value = "jeweller.shop.orderController.getUserOrders")

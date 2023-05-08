@@ -59,7 +59,7 @@ public class FavourController {
     public Object createFavour(@RequestBody FavourRequest favour) {
         try {
             favourService.saveFavour(favour);
-            return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).header(HttpHeaders.LOCATION, "/api/favours/all").build();
+            return ResponseEntity.ok(true);
         } catch (InnerException e) {
             return ResponseEntity.internalServerError();
         } catch (BadRequestException e) {
@@ -71,10 +71,10 @@ public class FavourController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     @Counted(value = "jeweller.shop.favourController.updateFavour")
-    public Object updateFavour(@PathVariable FavourRequest favour) {
+    public Object updateFavour(@RequestBody FavourRequest favour) {
         try {
-            favourService.saveFavour(favour);
-            return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).header(HttpHeaders.LOCATION, "/api/favours/all").build();
+            favourService.updateFavour(favour);
+            return ResponseEntity.ok(true);
         } catch (InnerException e) {
             return ResponseEntity.internalServerError();
         } catch (BadRequestException e) {
@@ -89,7 +89,7 @@ public class FavourController {
     public Object deleteFavour(@PathVariable Long id) {
         try {
             favourService.deleteFavour(id);
-            return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).header(HttpHeaders.LOCATION, "/api/favours/all").build();
+            return ResponseEntity.ok(true);
         } catch (InnerException e) {
             return ResponseEntity.internalServerError();
         }

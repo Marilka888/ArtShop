@@ -50,7 +50,7 @@ public class UserService {
         }
     }
 
-    @CacheEvict(value = {"userProfile", "allUsers", "userById"})
+    @CacheEvict(value = {"userProfile", "allUsers", "userById"}, allEntries=true)
     @Counted(value = "jeweller.shop.userService.ERROR.updateUser", recordFailuresOnly = true)
     public void updateUser(UserRequest request) {
         try {

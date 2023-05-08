@@ -19,7 +19,6 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @EqualsAndHashCode.Exclude
     private Long id;
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     public User user;

@@ -5,12 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import ru.marilka888.jeweller.model.Favour;
-import ru.marilka888.jeweller.model.Order;
 import ru.marilka888.jeweller.model.Stage;
-import ru.marilka888.jeweller.model.User;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,26 +16,19 @@ public class OrderResponse {
     @JsonSerialize()
     private Long id;
     @JsonSerialize()
-    public Long userId;
-    @JsonSerialize()
     public UserResponse user;
+    @JsonSerialize()
+    public Long userId;
     @JsonSerialize()
     public Favour favour;
     @JsonSerialize()
-    public Long favourId;
+    private Stage stage;
     @JsonSerialize()
     private Boolean success;
     @JsonSerialize()
-    private List<Order> orders;
-    @JsonSerialize()
-    private Order order;
-    @JsonSerialize()
     private Long qty;
-
     @JsonSerialize()
     private String description;
-    @JsonSerialize()
-    private Stage stage;
     @JsonSerialize()
     private Long sum;
     @JsonSerialize()

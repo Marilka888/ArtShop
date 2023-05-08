@@ -52,7 +52,7 @@ public class FavourService {
         }
     }
 
-    @CacheEvict(value = {"allFavours", "favourById"})
+    @CacheEvict(value = {"allFavours", "favourById"}, allEntries=true)
     @Counted(value = "jeweller.shop.favourService.ERROR.saveFavour", recordFailuresOnly = true)
     public void saveFavour(FavourRequest request) {
         try {
@@ -60,6 +60,10 @@ public class FavourService {
                     .title(request.getTitle())
                     .description(request.getDescription())
                     .price(request.getPrice())
+                    .num(request.getNum())
+                    .category(request.getCategory())
+                    .imageUrl(request.getImageUrl())
+                    .origin_price(request.getOrigin_price())
                     .build();
             favourRepository.save(favour);
             log.info("Была сохранена новая услуга с названием: {}", favour.getTitle());
@@ -72,7 +76,32 @@ public class FavourService {
         }
     }
 
-    @CacheEvict(value = {"allFavours", "favourById"})
+    @CacheEvict(value = {"allFavours", "favourById"}, allEntries=true)
+    @Counted(value = "jeweller.shop.favourService.ERROR.updateFavour", recordFailuresOnly = true)
+    public void updateFavour(FavourRequest request) {
+        try {
+            Favour favour = Favour.builder()
+                    .id(request.getId())
+                    .title(request.getTitle())
+                    .description(request.getDescription())
+                    .price(request.getPrice())
+                    .num(request.getNum())
+                    .category(request.getCategory())
+                    .imageUrl(request.getImageUrl())
+                    .origin_price(request.getOrigin_price())
+                    .build();
+            favourRepository.save(favour);
+            log.info("Была обновлена услуга с названием: {}", favour.getTitle());
+        } catch (NullPointerException e) {
+            log.warn("В запросе на создание/обновление новой услуги не заполнены обязательные поля");
+            throw new BadRequestException();
+        } catch (Exception e) {
+            log.warn("Произошла внутренняя ошибка");
+            throw new InnerException();
+        }
+    }
+
+    @CacheEvict(value = {"allFavours", "favourById"}, allEntries=true)
     @Counted(value = "jeweller.shop.favourService.ERROR.deleteFavour", recordFailuresOnly = true)
     public void deleteFavour(Long id) {
         try {

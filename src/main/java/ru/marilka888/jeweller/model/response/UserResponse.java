@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
-import ru.marilka888.jeweller.model.Order;
 import ru.marilka888.jeweller.model.Role;
 
 import java.time.LocalDateTime;
