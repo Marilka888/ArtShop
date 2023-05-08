@@ -1,2 +1,2 @@
-# Jeweller-Shop
-project for jewelry store
+# Art-Shop
+project for art store
