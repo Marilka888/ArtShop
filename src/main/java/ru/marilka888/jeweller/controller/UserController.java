@@ -13,7 +13,6 @@ import ru.marilka888.jeweller.common.exception.BadRequestException;
 import ru.marilka888.jeweller.common.exception.InnerException;
 import ru.marilka888.jeweller.common.exception.UserNotFoundException;
 import ru.marilka888.jeweller.model.request.UserRequest;
-import ru.marilka888.jeweller.model.response.UserResponse;
 import ru.marilka888.jeweller.service.UserService;
 
 import java.security.Principal;

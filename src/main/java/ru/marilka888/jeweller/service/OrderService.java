@@ -20,7 +20,6 @@ import ru.marilka888.jeweller.repository.UserRepository;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static ru.marilka888.jeweller.model.Stage.*;
 
@@ -32,7 +31,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final FavourRepository favourRepository;
 
-    @CacheEvict(value = {"userOrders", "userOrder", "allOrders"}, allEntries=true)
+    @CacheEvict(value = {"userOrders", "userOrder", "allOrders"}, allEntries = true)
     @Counted(value = "jeweller.shop.orderService.ERROR.createOrder", recordFailuresOnly = true)
     public Long createOrder(Principal principal, OrderRequest request) {
         try {
@@ -87,14 +86,14 @@ public class OrderService {
         }
     }
 
-    @CacheEvict(value = {"userOrders", "userOrder", "allOrders"}, allEntries=true)
+    @CacheEvict(value = {"userOrders", "userOrder", "allOrders"}, allEntries = true)
     @Counted(value = "jeweller.shop.orderService.ERROR.payOrder", recordFailuresOnly = true)
     public void payOrder(Long id) {
         Order order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
         updateOrder(order, PAID, false);
     }
 
-    @CacheEvict(value = {"userOrders", "userOrder", "allOrders"}, allEntries=true)
+    @CacheEvict(value = {"userOrders", "userOrder", "allOrders"}, allEntries = true)
     @Counted(value = "jeweller.shop.orderService.ERROR.payOrder", recordFailuresOnly = true)
     public void completedOrder(Long id) {
         Order order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
@@ -181,7 +180,7 @@ public class OrderService {
         }
     }
 
-    @CacheEvict(value = {"userOrders", "userOrder", "allOrders"}, allEntries=true)
+    @CacheEvict(value = {"userOrders", "userOrder", "allOrders"}, allEntries = true)
     @Counted(value = "jeweller.shop.orderService.ERROR.updateOrder", recordFailuresOnly = true)
     public void updateOrder(OrderRequest request, String id) {
         try {

@@ -1,6 +1,5 @@
 package ru.marilka888.jeweller.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 

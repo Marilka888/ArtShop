@@ -1,14 +1,8 @@
 package ru.marilka888.jeweller.controller;
 
 import io.micrometer.core.annotation.Counted;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,10 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.marilka888.jeweller.common.exception.BadRequestException;
 import ru.marilka888.jeweller.common.exception.InnerException;
 import ru.marilka888.jeweller.model.request.FavourRequest;
-import ru.marilka888.jeweller.model.response.FavourResponse;
 import ru.marilka888.jeweller.service.FavourService;
-
-import java.io.IOException;
 
 
 @RestController

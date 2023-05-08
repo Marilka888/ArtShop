@@ -52,7 +52,7 @@ public class FavourService {
         }
     }
 
-    @CacheEvict(value = {"allFavours", "favourById"}, allEntries=true)
+    @CacheEvict(value = {"allFavours", "favourById"}, allEntries = true)
     @Counted(value = "jeweller.shop.favourService.ERROR.saveFavour", recordFailuresOnly = true)
     public void saveFavour(FavourRequest request) {
         try {
@@ -76,7 +76,7 @@ public class FavourService {
         }
     }
 
-    @CacheEvict(value = {"allFavours", "favourById"}, allEntries=true)
+    @CacheEvict(value = {"allFavours", "favourById"}, allEntries = true)
     @Counted(value = "jeweller.shop.favourService.ERROR.updateFavour", recordFailuresOnly = true)
     public void updateFavour(FavourRequest request) {
         try {
@@ -101,7 +101,7 @@ public class FavourService {
         }
     }
 
-    @CacheEvict(value = {"allFavours", "favourById"}, allEntries=true)
+    @CacheEvict(value = {"allFavours", "favourById"}, allEntries = true)
     @Counted(value = "jeweller.shop.favourService.ERROR.deleteFavour", recordFailuresOnly = true)
     public void deleteFavour(Long id) {
         try {

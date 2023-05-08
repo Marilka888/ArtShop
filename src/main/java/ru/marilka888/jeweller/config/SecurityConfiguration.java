@@ -19,6 +19,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import ru.marilka888.jeweller.common.JwtAuthenticationFilter;
 
+import java.util.Collections;
+
 import static java.util.Arrays.asList;
 
 
@@ -40,7 +42,7 @@ public class SecurityConfiguration {
                 .csrf()
                 .disable()
                 .authorizeHttpRequests()
-                .requestMatchers( "/api/users/**")
+                .requestMatchers("/api/users/**")
                 .authenticated()
                 .requestMatchers("/api/auth/**", "/", "/api/favours/**", "/actuator/**", "/api/orders/**")
                 .permitAll()
@@ -63,7 +65,7 @@ public class SecurityConfiguration {
 
     private CorsConfigurationSource corsConfigurationSource(String corsOrigin) {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(asList(corsOrigin));
+        configuration.setAllowedOrigins(Collections.singletonList(corsOrigin));
         configuration.setAllowedMethods(asList("GET", "POST", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"));
         configuration.setMaxAge(10L);
         configuration.setAllowCredentials(true);
