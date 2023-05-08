@@ -45,7 +45,7 @@ public class UserService {
             log.warn("В БД не найден пользователь с email: {}", principal.getName());
             throw new UserNotFoundException();
         } catch (Exception e) {
-            log.warn("Произошла внутренняя ошибка");
+            log.warn("Произошла внутренняя ошибка: {}, {}", e.getMessage(), e.getStackTrace());
             throw new InnerException();
         }
     }
@@ -130,6 +130,7 @@ public class UserService {
         return user.getOrders()
                 .stream()
                 .map(order -> OrderResponse.builder()
+                        .id(order.getId())
                         .userId(order.getUser().getId())
                         .favour(order.favour)
                         .description(order.getDescription())

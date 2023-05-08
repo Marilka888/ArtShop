@@ -13,9 +13,11 @@ import java.util.Optional;
 public class OrderRequest {
     public Long userId;
     public Long favourId;
+    public Long size;
+    public Long qty;
+    public Boolean accessories;
+    public Boolean sketch;
     private Optional<String> description;
-    private Stage stage;
-    private Integer num;
     private boolean status;
 
 }

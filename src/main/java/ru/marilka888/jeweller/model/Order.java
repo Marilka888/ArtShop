@@ -31,7 +31,9 @@ public class Order {
     @Column(name = "stage")
     private Stage stage;
     @Column(name = "sum")
-    private Integer sum;
+    private Long sum;
+    @Column(name = "qty")
+    private Long qty;
     @Column(name = "status")
     private boolean status;
     @Column(name = "date_of_created")

@@ -17,7 +17,7 @@ public class Favour {
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @EqualsAndHashCode.Exclude
-    private Integer id;
+    private Long id;
 
     private String title;
 

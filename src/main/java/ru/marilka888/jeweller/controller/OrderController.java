@@ -29,8 +29,7 @@ public class OrderController {
     @Counted(value = "jeweller.shop.orderController.createOrder")
     public Object createOrder(Principal principal, @RequestBody OrderRequest order) {
         try {
-            orderService.createOrder(order, principal);
-            return ResponseEntity.ok();
+            return ResponseEntity.ok(orderService.createOrder(principal, order));
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound();
         } catch (InnerException e) {
@@ -43,10 +42,10 @@ public class OrderController {
     @PostMapping(value = "/pay/{id}")
     @Transactional
     @Counted(value = "jeweller.shop.orderController.createOrder")
-    public Object payOrder(@PathVariable Long id) {
+    public Object payOrder(@PathVariable Integer id) {
         try {
-            orderService.payOrder(id);
-            return ResponseEntity.ok();
+            orderService.payOrder(Long.valueOf(id));
+            return ResponseEntity.ok(true);
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound();
         } catch (InnerException e) {

@@ -11,11 +11,13 @@ import ru.marilka888.jeweller.common.exception.*;
 import ru.marilka888.jeweller.model.*;
 import ru.marilka888.jeweller.model.request.OrderRequest;
 import ru.marilka888.jeweller.model.response.OrderResponse;
+import ru.marilka888.jeweller.model.response.UserResponse;
 import ru.marilka888.jeweller.repository.FavourRepository;
 import ru.marilka888.jeweller.repository.OrderRepository;
 import ru.marilka888.jeweller.repository.UserRepository;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static ru.marilka888.jeweller.model.Stage.CREATED;
@@ -31,22 +33,47 @@ public class OrderService {
 
     @CacheEvict(value = {"userOrders", "userOrder", "allOrders"})
     @Counted(value = "jeweller.shop.orderService.ERROR.createOrder", recordFailuresOnly = true)
-    public void createOrder(OrderRequest request, Principal principal) {
+    public Long createOrder(Principal principal, OrderRequest request) {
         try {
+            var accessories = 0;
+            var sketch = 100;
+            var description = new StringBuffer("Заказ: ");
+
             User user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
             Favour favour = favourRepository.findById(request.favourId).orElseThrow(NullPointerException::new);
-            var sum = request.getNum() * favour.getPrice();
+
+            if (request.accessories) {
+                accessories = 250;
+                description.append("с дополнительными аксессуарами, ");
+            }
+            if (request.sketch) {
+                sketch = 250;
+                description.append("с эскизом под заказ, ");
+            }
+            description.append("с размером: " + request.size + ". ");
+            var sum = request.getQty() * request.size * (favour.getPrice() + accessories + sketch);
+
+            if (request.getDescription().isPresent()) {
+                description.append("Комментарий заказчика: " + request.getDescription());
+            }
 
             Order order = Order.builder()
                     .user(user)
                     .favour(favour)
-                    .description(request.getDescription().orElse(null))
+                    .description(String.valueOf(description))
                     .stage(CREATED)
                     .sum(sum)
+                    .qty(request.getQty())
                     .status(false)
                     .build();
 
+            var now = LocalDateTime.now();
             orderRepository.save(order);
+
+            Order orderResponse = orderRepository.findByDateOfCreatedAfterAndAndUser(now, user)
+                    .orElseThrow(OrderNotFoundException::new);
+
+            return orderResponse.getId();
         } catch (UserNotFoundException e) {
             log.warn("В БД не найден пользователь с email: {}", principal.getName());
             throw new UserNotFoundException();
@@ -68,7 +95,7 @@ public class OrderService {
 
     @Cacheable(value = "userOrders")
     @Counted(value = "jeweller.shop.orderService.ERROR.getUserOrders", recordFailuresOnly = true)
-    public List<OrderResponse> getUserOrders(Principal principal) {
+    public OrderResponse getUserOrders(Principal principal) {
         try {
             User user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
             List<Order> orders = orderRepository.findAllByUser(user);
@@ -76,16 +103,11 @@ public class OrderService {
             if (orders.isEmpty()) {
                 throw new OrderNotFoundException("Заказы не были найдены");
             }
-            return orders.stream().map(order -> OrderResponse.builder()
-                            .userId(order.getUser().getId())
-                            .favour(order.favour)
-                            .description(order.getDescription())
-                            .stage(order.getStage())
-                            .sum(order.getSum())
-                            .status(order.isStatus())
-                            .dateOfCreated(order.getDateOfCreated())
-                            .build())
-                    .toList();
+            return OrderResponse.builder()
+                    .success(true)
+                    .orders(orders)
+                    .build();
+
         } catch (UserNotFoundException e) {
             log.warn("В БД не найден пользователь с email: {}", principal.getName());
             throw new UserNotFoundException();
@@ -108,14 +130,22 @@ public class OrderService {
             User user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
             Order order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
 
+            var userResponse = UserResponse.builder()
+                    .firstname(user.getFirstname())
+                    .lastname(user.getLastname())
+                    .phone(user.getPhone())
+                    .email(user.getEmail())
+                    .build();
+
             OrderResponse response = OrderResponse.builder()
-                    .userId(order.getUser().getId())
-                    .favour(order.favour)
+                    .id(order.getId())
+                    .user(userResponse)
+                    .favour(order.getFavour())
                     .description(order.getDescription())
                     .stage(order.getStage())
+                    .qty(order.getQty())
                     .sum(order.getSum())
                     .status(order.isStatus())
-                    .dateOfCreated(order.getDateOfCreated())
                     .build();
 
             response = user.getRole().equals(Role.ADMIN) || order.getUser().equals(user) ? response : null;
@@ -145,7 +175,7 @@ public class OrderService {
 
     @Cacheable("allOrders")
     @Counted(value = "jeweller.shop.orderService.ERROR.findAllOrders", recordFailuresOnly = true)
-    public List<OrderResponse> findAllOrders() {
+    public OrderResponse findAllOrders() {
         try {
             List<Order> orders = orderRepository.findAll();
 
@@ -153,16 +183,11 @@ public class OrderService {
                 throw new OrderNotFoundException("Заказы не были найдены");
             }
 
-            return orders.stream().map(order -> OrderResponse.builder()
-                            .userId(order.getUser().getId())
-                            .favour(order.favour)
-                            .description(order.getDescription())
-                            .stage(order.getStage())
-                            .sum(order.getSum())
-                            .status(order.isStatus())
-                            .dateOfCreated(order.getDateOfCreated())
-                            .build())
-                    .toList();
+            return OrderResponse.builder()
+                    .success(true)
+                    .orders(orders)
+                    .build();
+
         } catch (Exception e) {
             log.warn("Произошла внутренняя ошибка");
             throw new InnerException();
@@ -189,6 +214,7 @@ public class OrderService {
     private void updateOrder(Order order, Stage stage, Boolean status) {
         try {
             Order updatedOrder = Order.builder()
+                    .id(order.getId())
                     .user(order.getUser())
                     .favour(order.getFavour())
                     .description(order.getDescription())
