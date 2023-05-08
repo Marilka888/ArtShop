@@ -1,6 +1,5 @@
 package ru.marilka888.jeweller.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,16 +15,17 @@ public class Favour {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @JsonIgnore
     @EqualsAndHashCode.Exclude
-    private Integer id;
-
+    private Long id;
     private String title;
-
     @Column(columnDefinition = "text")
     private String description;
-
-    private String price;
+    private String category;
+    private String imageUrl;
+    private Boolean is_enabled;
+    private Integer num;
+    private String origin_price;
+    private Integer price;
 }
 
 

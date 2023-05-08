@@ -45,12 +45,12 @@ public class UserService {
             log.warn("В БД не найден пользователь с email: {}", principal.getName());
             throw new UserNotFoundException();
         } catch (Exception e) {
-            log.warn("Произошла внутренняя ошибка");
+            log.warn("Произошла внутренняя ошибка: {}, {}", e.getMessage(), e.getStackTrace());
             throw new InnerException();
         }
     }
 
-    @CacheEvict(value = {"userProfile", "allUsers", "userById"})
+    @CacheEvict(value = {"userProfile", "allUsers", "userById"}, allEntries = true)
     @Counted(value = "jeweller.shop.userService.ERROR.updateUser", recordFailuresOnly = true)
     public void updateUser(UserRequest request) {
         try {
@@ -130,9 +130,12 @@ public class UserService {
         return user.getOrders()
                 .stream()
                 .map(order -> OrderResponse.builder()
-                        .title(order.getTitle())
+                        .id(order.getId())
+                        .userId(order.getUser().getId())
+                        .favour(order.favour)
                         .description(order.getDescription())
-                        .price(order.getPrice())
+                        .stage(order.getStage())
+                        .sum(order.getSum())
                         .status(order.isStatus())
                         .dateOfCreated(order.getDateOfCreated())
                         .build())

@@ -2,7 +2,6 @@ package ru.marilka888.jeweller.controller;
 
 import io.micrometer.core.annotation.Counted;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +19,7 @@ import java.security.Principal;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/orders")
+@CrossOrigin
 public class OrderController {
     private final OrderService orderService;
 
@@ -28,8 +28,41 @@ public class OrderController {
     @Counted(value = "jeweller.shop.orderController.createOrder")
     public Object createOrder(Principal principal, @RequestBody OrderRequest order) {
         try {
-            orderService.saveOrder(order, principal);
-            return ResponseEntity.ok();
+            return ResponseEntity.ok(orderService.createOrder(principal, order));
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound();
+        } catch (InnerException e) {
+            return ResponseEntity.internalServerError();
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest();
+        }
+    }
+
+    @PostMapping(value = "/pay/{id}")
+    @Transactional
+    @Counted(value = "jeweller.shop.orderController.createOrder")
+    public Object payOrder(@PathVariable Integer id) {
+        try {
+            orderService.payOrder(Long.valueOf(id));
+            return ResponseEntity.ok(true);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound();
+        } catch (InnerException e) {
+            return ResponseEntity.internalServerError();
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest();
+        }
+    }
+
+    @PostMapping(value = "/admin/completed/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Transactional
+    @Counted(value = "jeweller.shop.orderController.createOrder")
+    public Object completedOrder(@PathVariable Integer id) {
+        try {
+            System.out.println("id 2232  " + id);
+            orderService.completedOrder(Long.valueOf(id));
+            return ResponseEntity.ok(true);
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound();
         } catch (InnerException e) {

@@ -4,17 +4,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Optional;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class OrderRequest {
-    private String title;
-
-    private String description;
-
-    private String price;
-
+    public Long userId;
+    public Long favourId;
+    public Long size;
+    public Long qty;
+    public Boolean accessories;
+    public Boolean sketch;
+    private Optional<String> description;
     private boolean status;
 
-    public Long userId;
 }

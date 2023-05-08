@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import ru.marilka888.jeweller.model.Favour;
+import ru.marilka888.jeweller.model.Stage;
 
 import java.time.LocalDateTime;
 
@@ -11,22 +13,27 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class OrderResponse {
-
     @JsonSerialize()
-    private String title;
-
+    private Long id;
     @JsonSerialize()
-    private String description;
-
-    @JsonSerialize()
-    private String price;
-
-    @JsonSerialize()
-    private boolean status;
-
+    public UserResponse user;
     @JsonSerialize()
     public Long userId;
-
+    @JsonSerialize()
+    public Favour favour;
+    @JsonSerialize()
+    private Stage stage;
+    @JsonSerialize()
+    private Boolean success;
+    @JsonSerialize()
+    private Long qty;
+    @JsonSerialize()
+    private String description;
+    @JsonSerialize()
+    private Long sum;
+    @JsonSerialize()
+    private boolean status;
     @JsonSerialize()
     private LocalDateTime dateOfCreated;
+
 }

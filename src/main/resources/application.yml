@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/jeweller_shop
     username: postgres
-    password: postgres
+    password: Yan9100fg5
     driver-class-name: org.postgresql.Driver
   cache:
     type: caffeine
@@ -17,7 +17,7 @@ spring:
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 server:
-  port: 8080
+  port: 8089
   # prometeus
 management:
   endpoints:
